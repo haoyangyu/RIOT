@@ -29,8 +29,9 @@ int main(void)
     uint32_t last_wakeup = xtimer_now();
 
     while(1) {
-        xtimer_usleep_until(&last_wakeup, INTERVAL);
-        printf("slept until %"PRIu32"\n", xtimer_now());
+	xtimer_usleep_until(&last_wakeup, INTERVAL);
+        //the wakeup time
+	printf("slept until %"PRIu32"\n", xtimer_now());
     }
 
     return 0;

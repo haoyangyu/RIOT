@@ -34,6 +34,24 @@
 #include "net/sixlowpan.h"
 #include "od.h"
 
+/*haoyang: header*/
+#include "thread.h"
+#include "net/gnrc/ipv6/netif.h"
+#include "net/gnrc/netif.h"
+#include "net/gnrc/netapi.h"
+#include "net/netopt.h"
+#include "net/gnrc/pkt.h"
+#include "net/gnrc/pktbuf.h"
+#include "net/gnrc/netif/hdr.h"
+#include "net/gnrc/sixlowpan/netif.h"
+/*haoyang: declaration*/
+/**
+ * @brief   The maximal expected link layer address length in byte
+ */
+#define MAX_ADDR_LEN            (8U)
+
+int _netif_send_echo_(void);
+
 /**
  * @brief   PID of the pktdump thread
  */
@@ -115,6 +133,9 @@ static void _dump(gnrc_pktsnip_t *pkt)
 
     printf("~~ PKT    - %2i snips, total size: %3i byte\n", snips, size);
     gnrc_pktbuf_release(pkt);
+    
+    /*haoyang: send the acknowledge packet back*/
+    _netif_send_echo_();
 }
 
 static void *_eventloop(void *arg)
@@ -168,3 +189,40 @@ kernel_pid_t gnrc_pktdump_init(void)
     }
     return _pid;
 }
+
+
+//haoyang: for send ack back
+/* shell commands */
+int _netif_send_echo_(void)
+{
+    //kernel_pid_t dev;
+    uint8_t addr[MAX_ADDR_LEN];
+    size_t addr_len;
+    gnrc_pktsnip_t *pkt;
+    gnrc_netif_hdr_t *nethdr;
+    uint8_t flags = 0x00;
+    //Broadcast
+    flags |= GNRC_NETIF_HDR_FLAGS_BROADCAST;
+    
+    addr_len = 0;
+    
+    /* put packet together */
+    pkt = gnrc_pktbuf_add(NULL, "ack", strlen("ack"), GNRC_NETTYPE_UNDEF);
+    pkt = gnrc_pktbuf_add(pkt, NULL, sizeof(gnrc_netif_hdr_t) + addr_len,
+                          GNRC_NETTYPE_NETIF);
+    /* haoyang: get the header data of the packet -- the eth address*/
+    nethdr = (gnrc_netif_hdr_t *)pkt->data;
+    /* haoyang: Initialize teh header and set the destination address*/
+    gnrc_netif_hdr_init(nethdr, 0, addr_len);
+    gnrc_netif_hdr_set_dst_addr(nethdr, addr, addr_len);
+    nethdr->flags = flags;
+    /* and send it */
+    if (gnrc_netapi_send(4, pkt) < 1) {
+        puts("error: unable to send\n");
+        gnrc_pktbuf_release(pkt);
+        return 1;
+    }
+    
+    return 0;
+}
+

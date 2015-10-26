@@ -879,3 +879,62 @@ int _netif_config(int argc, char **argv)
     _del_usage(argv[0]);
     return 1;
 }
+
+//Haoyang's Change for txtsndecho
+
+/* shell commands */
+int _netif_send_echo(int argc, char **argv)
+{
+    kernel_pid_t dev;
+    uint8_t addr[MAX_ADDR_LEN];
+    size_t addr_len;
+    gnrc_pktsnip_t *pkt;
+    gnrc_netif_hdr_t *nethdr;
+    uint8_t flags = 0x00;
+    
+    if (argc < 4) {
+        printf("usage: %s <if> [<addr>|bcast] <data>\n", argv[0]);
+        return 1;
+    }
+    
+    /* parse interface */
+    dev = (kernel_pid_t)atoi(argv[1]);
+    
+    if (!_is_iface(dev)) {
+        puts("error: invalid interface given");
+        return 1;
+    }
+    
+    /* parse address */
+    addr_len = gnrc_netif_addr_from_str(addr, sizeof(addr), argv[2]);
+    
+    if (addr_len == 0) {
+        if (strcmp(argv[2], "bcast") == 0) {
+            flags |= GNRC_NETIF_HDR_FLAGS_BROADCAST;
+        }
+        else {
+            puts("error: invalid address given");
+            return 1;
+        }
+    }
+    
+    /* put packet together */
+    pkt = gnrc_pktbuf_add(NULL, argv[3], strlen(argv[3]), GNRC_NETTYPE_UNDEF);
+    pkt = gnrc_pktbuf_add(pkt, NULL, sizeof(gnrc_netif_hdr_t) + addr_len,
+                          GNRC_NETTYPE_NETIF);
+    /* Haoyang: get the header data of the packet -- the eth address*/
+    nethdr = (gnrc_netif_hdr_t *)pkt->data;
+    /* Haoyang: Initialize teh header and set the destination address*/
+    gnrc_netif_hdr_init(nethdr, 0, addr_len);
+    gnrc_netif_hdr_set_dst_addr(nethdr, addr, addr_len);
+    /* Haoyang: set the source */
+    nethdr->flags = flags;
+    /* and send it */
+    if (gnrc_netapi_send(dev, pkt) < 1) {
+        puts("error: unable to send\n");
+        gnrc_pktbuf_release(pkt);
+        return 1;
+    }
+    
+    return 0;
+}

@@ -38,6 +38,9 @@ BOARD_PROVIDES_NETIF := airfy-beacon fox iotlab-m3 mulle native nrf51dongle \
 	nrf6310 pba-d-01-kw2x pca10000 pca10005 saml21-xpro samr21-xpro spark-core \
 	yunjia-nrf51822
 
+#--This is to make sure that only the Board in $BOARD_PROVIDES_NETIF 
+#--will have to set the network up
+ 
 ifneq (,$(filter $(BOARD),$(BOARD_PROVIDES_NETIF)))
   # Use modules for networking
   # gnrc is a meta module including all required, basic gnrc networking modules

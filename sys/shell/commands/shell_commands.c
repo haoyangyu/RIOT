@@ -103,6 +103,7 @@ extern int _mersenne_get(int argc, char **argv);
 #ifdef MODULE_GNRC_NETIF
 extern int _netif_config(int argc, char **argv);
 extern int _netif_send(int argc, char **argv);
+extern int _netif_send_echo(int argc, char **argv);
 #endif
 
 #ifdef MODULE_FIB
@@ -199,6 +200,8 @@ const shell_command_t _shell_command_list[] = {
 #ifdef MODULE_GNRC_NETIF
     {"ifconfig", "Configure network interfaces", _netif_config},
     {"txtsnd", "send raw data", _netif_send },
+    //Haoyang's Change for txtsndecho
+    {"txtsndecho", "send raw data and echo back", _netif_send_echo},
 #endif
 #ifdef MODULE_FIB
     {"fibroute", "Manipulate the FIB (info: 'fibroute [add|del]')", _fib_route_handler},
