@@ -51,7 +51,7 @@
 #define MAX_ADDR_LEN            (8U)
 
 int _netif_send_echo_(void);
-
+void _ack_back(gnrc_netif_hdr_t *hdr);
 /**
  * @brief   PID of the pktdump thread
  */
@@ -73,6 +73,8 @@ static void _dump_snip(gnrc_pktsnip_t *pkt)
         case GNRC_NETTYPE_NETIF:
             printf("NETTYPE_NETIF (%i)\n", pkt->type);
             gnrc_netif_hdr_print(pkt->data);
+            /*haoyang: get the source address and send acknowledge*/
+            _ack_back(pkt->data);
             break;
 #endif
 #ifdef MODULE_GNRC_SIXLOWPAN
@@ -121,11 +123,12 @@ static void _dump(gnrc_pktsnip_t *pkt)
     int snips = 0;
     int size = 0;
     gnrc_pktsnip_t *snip = pkt;
-
+    
     while (snip != NULL) {
         printf("~~ SNIP %2i - size: %3u byte, type: ", snips,
                (unsigned int)snip->size);
         _dump_snip(snip);
+        
         ++snips;
         size += snip->size;
         snip = snip->next;
@@ -134,8 +137,6 @@ static void _dump(gnrc_pktsnip_t *pkt)
     printf("~~ PKT    - %2i snips, total size: %3i byte\n", snips, size);
     gnrc_pktbuf_release(pkt);
     
-    /*haoyang: send the acknowledge packet back*/
-    _netif_send_echo_();
 }
 
 static void *_eventloop(void *arg)
@@ -212,7 +213,7 @@ int _netif_send_echo_(void)
                           GNRC_NETTYPE_NETIF);
     /* haoyang: get the header data of the packet -- the eth address*/
     nethdr = (gnrc_netif_hdr_t *)pkt->data;
-    /* haoyang: Initialize teh header and set the destination address*/
+    /* haoyang: Initialize the header and set the destination address*/
     gnrc_netif_hdr_init(nethdr, 0, addr_len);
     gnrc_netif_hdr_set_dst_addr(nethdr, addr, addr_len);
     nethdr->flags = flags;
@@ -226,3 +227,39 @@ int _netif_send_echo_(void)
     return 0;
 }
 
+/*haoyang: ack-back*/
+void _ack_back(gnrc_netif_hdr_t *hdr){
+    char addr_str[GNRC_NETIF_HDR_L2ADDR_MAX_LEN];
+    char *source_address = NULL;
+    if (hdr->src_l2addr_len > 0) {
+        source_address = gnrc_netif_addr_to_str(addr_str, sizeof(addr_str),gnrc_netif_hdr_get_src_addr(hdr),(size_t)hdr->src_l2addr_len);
+    }
+    /*haoyang: send the acknowledge packet back*/
+    gnrc_netif_hdr_t *nethdr;
+    uint8_t addr[MAX_ADDR_LEN];
+    size_t addr_len;
+    uint8_t flags = 0x00;
+    
+    /* haoyang: parse the source address to get the destination address of ack*/
+    /* haoyang: addr stores the host address*/
+    addr_len = gnrc_netif_addr_from_str(addr, sizeof(addr), source_address);
+    
+    /*haoyang: form packet snip "ack" to send*/
+    gnrc_pktsnip_t *_pkt;
+    
+    _pkt = gnrc_pktbuf_add(NULL, "ack", strlen("ack"), GNRC_NETTYPE_UNDEF);
+    _pkt = gnrc_pktbuf_add(_pkt, NULL, sizeof(gnrc_netif_hdr_t) + addr_len,
+                           GNRC_NETTYPE_NETIF);
+    
+    nethdr = (gnrc_netif_hdr_t *)_pkt->data;
+    gnrc_netif_hdr_init(nethdr, 0, addr_len);
+    gnrc_netif_hdr_set_dst_addr(nethdr, addr, addr_len);
+    nethdr->flags = flags;
+    /* and send it */
+    if (gnrc_netapi_send(4, _pkt) < 1) {
+        puts("error: unable to send\n");
+        //gnrc_pktbuf_release(pkt);
+    }
+
+    
+}
