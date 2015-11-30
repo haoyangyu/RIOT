@@ -75,6 +75,11 @@ ifneq (,$(filter sem,$(USEMODULE)))
     DIRS += sem
 endif
 
+#haoyang:mf-lite
+ifneq (,$(filter mf-lite,$(USEMODULE)))
+    DIRS += net/network_layer/mf-lite
+endif
+
 DIRS += $(dir $(wildcard $(addsuffix /Makefile, ${USEMODULE})))
 
 include $(RIOTBASE)/Makefile.base

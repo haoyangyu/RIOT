@@ -35,6 +35,10 @@
 #include "net/gnrc/netif/hdr.h"
 #include "net/gnrc/sixlowpan/netif.h"
 
+//haoyang: header defined
+#include "net/mf-lite/neighbordiscovery/nbd_adv_hdr.h"
+#include "net/mf-lite/mf_static_routing.h"
+#include "net/mf-lite/strutil.h"
 /**
  * @brief   The maximal expected link layer address length in byte
  */
@@ -959,5 +963,77 @@ int _netif_send_echo(int argc, char **argv)
         return 1;
     }
     
+    return 0;
+}
+
+
+//haoyang: for neighbor discovery send test
+/* shell commands */
+int _netif_send_nbd(int argc, char **argv){
+    kernel_pid_t dev;
+    gnrc_pktsnip_t *pkt;
+    mf_nbd_adv_hdr_t *mf_nbd_hdr;
+    gnrc_netif_hdr_t *hdr;
+    uint8_t flags = 0x00;
+
+    int result_flag;
+
+    //Get the interface
+    dev = (kernel_pid_t)atoi(argv[1]);
+    //set the broadcast value
+    flags |= GNRC_NETIF_HDR_FLAGS_BROADCAST;
+
+    pkt = gnrc_pktbuf_add(NULL, NULL, sizeof(mf_nbd_adv_hdr_t), GNRC_NETTYPE_UNDEF);
+    //initial the nbd packet
+    mf_nbd_hdr = (mf_nbd_adv_hdr_t *)pkt->data;
+    mf_nbd_adv_hdr_init(mf_nbd_hdr, 0x01, 0x01, 0xffff);
+
+    pkt = gnrc_pktbuf_add(pkt, NULL, sizeof(gnrc_netif_hdr_t), GNRC_NETTYPE_NETIF);
+    hdr = (gnrc_netif_hdr_t *)pkt->data;
+    gnrc_netif_hdr_init(hdr, 0, 0);
+    hdr->flags = flags;
+
+    if(gnrc_netapi_send(dev, pkt) < 1){
+        //unable to send
+        gnrc_pktbuf_release(pkt);
+        result_flag = 1;
+    }
+
+    result_flag = 0;
+
+    return result_flag;
+}
+
+
+
+//haoyang: for static routing
+/* shell commands */
+int _netif_static_routing(int argc, char **argv){
+    mf_routing_table_entry_t *ptr = NULL;
+    printf("start\n");
+    linkList_init();
+    if (argc > 1) {
+        printf("in if statement, %s\n", argv[1]);
+        if (strcmp(argv[1], "append") == 0) {
+            printf("append start\n");
+            //initial for the utility value space
+            uint16_t dst_guid, next_hop_guid;
+            bool result = false;
+            result = (str_to_uint16(argv[2], &dst_guid) && str_to_uint16(argv[3], &next_hop_guid));
+            if(result){
+                printf("%"PRIu16" \n", dst_guid);
+                mf_routing_table_append_entry(dst_guid, next_hop_guid);
+            }  
+            printf("append run success\n");
+        }
+        else if (strcmp(argv[1], "print") == 0) {
+            printf("run\n");
+            print_mf_routing_table(ptr);
+            printf("print success\n");
+        }
+        else {
+            return 1;
+        }
+    }
     return 0;
 }

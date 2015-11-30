@@ -73,8 +73,6 @@ static void _dump_snip(gnrc_pktsnip_t *pkt)
         case GNRC_NETTYPE_NETIF:
             printf("NETTYPE_NETIF (%i)\n", pkt->type);
             gnrc_netif_hdr_print(pkt->data);
-            /*haoyang: get the source address and send acknowledge*/
-            _ack_back(pkt->data);
             break;
 #endif
 #ifdef MODULE_GNRC_SIXLOWPAN

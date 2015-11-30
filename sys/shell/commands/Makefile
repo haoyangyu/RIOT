@@ -43,6 +43,8 @@ ifneq (,$(filter at30tse75x,$(USEMODULE)))
 endif
 ifneq (,$(filter gnrc_netif,$(USEMODULE)))
   SRC += sc_netif.c
+  #haoyang: for static_routing
+  #SRC += sc_static_routing.c
 endif
 ifneq (,$(filter fib,$(USEMODULE)))
   SRC += sc_fib.c
