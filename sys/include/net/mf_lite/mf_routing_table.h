@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 #include "kernel_types.h"
-#include "mutex.h"
+#include "mutex.h" 
 
 // Container descriptor for a MF_ROUTING_entry
 typedef struct mf_routing_table_entry{
@@ -26,11 +26,11 @@ typedef struct mf_routing_table_entry{
 // Meta information about the MF_ROUTING table
 typedef struct {
 	// array holding the NBD table entries
-    mf_routing_table_entry_t *entries;  
+    mf_routing_table_entry_t *entries;
     // number of entries in the table
-    size_t size;           
+    size_t size;
     // access mutex to control exclusive operations on calls
-    mutex_t mtx_access;     
+    mutex_t mtx_access;
 } mf_routing_table;
 */
 #endif

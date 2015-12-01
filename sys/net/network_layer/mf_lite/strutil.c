@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
-#include "net/mf-lite/strutil.h"
+#include "net/mf_lite/strutil.h"
 
 bool str_to_uint16(char *str, uint16_t *res){
 	char *end;

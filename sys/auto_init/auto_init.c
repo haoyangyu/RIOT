@@ -83,6 +83,11 @@
 #define ENABLE_DEBUG (0)
 #include "debug.h"
 
+//haoyang: MODULE header
+#ifdef MODULE_MF_LITE
+#include "net/mf_lite/mf_lite_static_route.h"
+#endif
+
 void auto_init(void)
 {
 #ifdef MODULE_CONFIG
@@ -139,8 +144,12 @@ void auto_init(void)
     gnrc_udp_init();
 #endif
 
+//haoyang: module
+#ifdef MODULE_MF_LITE
+    mf_lite_static_route_init();
+#endif
 
-/* initialize network devices */
+    /* initialize network devices */
 #ifdef MODULE_AUTO_INIT_GNRC_NETIF
 
 #ifdef MODULE_AT86RF2XX

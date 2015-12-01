@@ -52,4 +52,3 @@ static inline void mf_nbd_adv_hdr_init(mf_nbd_adv_hdr_t *hdr, uint8_t version, u
 	hdr->lifetime = time;
 	hdr->isnew = 1;
 }
-

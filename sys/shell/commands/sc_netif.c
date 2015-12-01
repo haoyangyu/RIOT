@@ -36,9 +36,9 @@
 #include "net/gnrc/sixlowpan/netif.h"
 
 //haoyang: header defined
-#include "net/mf-lite/neighbordiscovery/nbd_adv_hdr.h"
-#include "net/mf-lite/mf_static_routing.h"
-#include "net/mf-lite/strutil.h"
+#include "net/mf_lite/neighbordiscovery/nbd_adv_hdr.h"
+#include "net/mf_lite/mf_static_routing.h"
+#include "net/mf_lite/strutil.h"
 /**
  * @brief   The maximal expected link layer address length in byte
  */
@@ -57,7 +57,7 @@ static bool _is_number(char *str)
             return false;
         }
     }
-    
+
     return true;
 }
 
@@ -65,13 +65,13 @@ static bool _is_iface(kernel_pid_t dev)
 {
     kernel_pid_t ifs[GNRC_NETIF_NUMOF];
     size_t numof = gnrc_netif_get(ifs);
-    
+
     for (size_t i = 0; i < numof && i < GNRC_NETIF_NUMOF; i++) {
         if (ifs[i] == dev) {
             return true;
         }
     }
-    
+
     return false;
 }
 
@@ -122,31 +122,31 @@ static void _print_netopt(netopt_t opt)
         case NETOPT_ADDRESS:
             printf("(short) address");
             break;
-            
+
         case NETOPT_ADDRESS_LONG:
             printf("long address");
             break;
-            
+
         case NETOPT_SRC_LEN:
             printf("source address length");
             break;
-            
+
         case NETOPT_CHANNEL:
             printf("channel");
             break;
-            
+
         case NETOPT_NID:
             printf("network identifier");
             break;
-            
+
         case NETOPT_TX_POWER:
             printf("TX power [in dBm]");
             break;
-            
+
         case NETOPT_CSMA_RETRIES:
             printf("CSMA retries");
             break;
-            
+
         default:
             /* we don't serve these options here */
             break;
@@ -194,12 +194,12 @@ static void _netif_list(kernel_pid_t dev)
     gnrc_ipv6_netif_t *entry = gnrc_ipv6_netif_get(dev);
     char ipv6_addr[IPV6_ADDR_MAX_STR_LEN];
 #endif
-    
-    
+
+
     printf("Iface %2d  ", dev);
-    
+
     res = gnrc_netapi_get(dev, NETOPT_ADDRESS, 0, hwaddr, sizeof(hwaddr));
-    
+
     if (res >= 0) {
         char hwaddr_str[res * 3];
         printf(" HWaddr: ");
@@ -207,45 +207,45 @@ static void _netif_list(kernel_pid_t dev)
                                             hwaddr, res));
         printf(" ");
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_CHANNEL, 0, &u16, sizeof(u16));
-    
+
     if (res >= 0) {
         printf(" Channel: %" PRIu16 " ", u16);
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_NID, 0, &u16, sizeof(u16));
-    
+
     if (res >= 0) {
         printf(" NID: 0x%" PRIx16 " ", u16);
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_TX_POWER, 0, &i16, sizeof(i16));
-    
+
     if (res >= 0) {
         printf(" TX-Power: %" PRIi16 "dBm ", i16);
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_STATE, 0, &state, sizeof(state));
-    
+
     if (res >= 0) {
         printf(" State: ");
         _print_netopt_state(state);
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_CSMA_RETRIES, 0, &u8, sizeof(u8));
-    
+
     if (res >= 0) {
         res = gnrc_netapi_get(dev, NETOPT_CSMA, 0, &enable, sizeof(enable));
         if ((res >= 0) && (enable == NETOPT_ENABLE)) {
             printf(" CSMA Retries: %" PRIu8 " ", *((uint8_t *) &u8));
         }
     }
-    
+
     printf("\n           ");
-    
+
     res = gnrc_netapi_get(dev, NETOPT_ADDRESS_LONG, 0, hwaddr, sizeof(hwaddr));
-    
+
     if (res >= 0) {
         char hwaddr_str[res * 3];
         printf("Long HWaddr: ");
@@ -253,53 +253,53 @@ static void _netif_list(kernel_pid_t dev)
                                              hwaddr, res));
         linebreak = true;
     }
-    
+
     if (linebreak) {
         printf("\n           ");
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_PROMISCUOUSMODE, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("PROMISC  ");
         linebreak = true;
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_AUTOACK, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("AUTOACK  ");
         linebreak = true;
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_PRELOADING, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("PRELOAD  ");
         linebreak = true;
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_RAWMODE, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("RAWMODE  ");
         linebreak = true;
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_CSMA, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("CSMA  ");
         linebreak = true;
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_AUTOCCA, 0, &enable, sizeof(enable));
-    
+
     if ((res >= 0) && (enable == NETOPT_ENABLE)) {
         printf("AUTOCCA  ");
         linebreak = true;
     }
-    
+
 #ifdef MODULE_GNRC_IPV6_NETIF
     if (entry != NULL) {
         printf("MTU:%" PRIu16 "  ", entry->mtu);
@@ -309,52 +309,52 @@ static void _netif_list(kernel_pid_t dev)
         linebreak = true;
     }
 #endif
-    
+
 #if defined(MODULE_GNRC_SIXLOWPAN_NETIF) && defined(MODULE_GNRC_SIXLOWPAN_IPHC)
     gnrc_sixlowpan_netif_t *sixlo_entry = gnrc_sixlowpan_netif_get(dev);
-    
+
     if ((sixlo_entry != NULL) && (sixlo_entry->iphc_enabled)) {
         printf("IPHC  ");
         linebreak = true;
     }
 #endif
-    
+
     if (linebreak) {
         printf("\n           ");
     }
-    
+
     res = gnrc_netapi_get(dev, NETOPT_SRC_LEN, 0, &u16, sizeof(u16));
-    
+
     if (res >= 0) {
         printf("Source address length: %" PRIu16 "\n           ", u16);
     }
-    
+
 #ifdef MODULE_GNRC_IPV6_NETIF
     if (entry == NULL) {
         puts("");
         return;
     }
-    
+
     printf("Link type: %s", (entry->flags & GNRC_IPV6_NETIF_FLAGS_IS_WIRED) ?
            "wired" : "wireless");
     printf("\n           ");
-    
+
     for (int i = 0; i < GNRC_IPV6_NETIF_ADDR_NUMOF; i++) {
         if (!ipv6_addr_is_unspecified(&entry->addrs[i].addr)) {
             printf("inet6 addr: ");
-            
+
             if (ipv6_addr_to_str(ipv6_addr, &entry->addrs[i].addr,
                                  IPV6_ADDR_MAX_STR_LEN)) {
                 printf("%s/%" PRIu8 "  scope: ", ipv6_addr,
                        entry->addrs[i].prefix_len);
-                
+
                 if ((ipv6_addr_is_link_local(&entry->addrs[i].addr))) {
                     printf("local");
                 }
                 else {
                     printf("global");
                 }
-                
+
                 if (entry->addrs[i].flags & GNRC_IPV6_NETIF_ADDR_FLAGS_NON_UNICAST) {
                     if (ipv6_addr_is_multicast(&entry->addrs[i].addr)) {
                         printf(" [multicast]");
@@ -367,12 +367,12 @@ static void _netif_list(kernel_pid_t dev)
             else {
                 printf("error in conversion");
             }
-            
+
             printf("\n           ");
         }
     }
 #endif
-    
+
     puts("");
 }
 
@@ -380,7 +380,7 @@ static int _netif_set_u16(kernel_pid_t dev, netopt_t opt, char *u16_str)
 {
     unsigned int res;
     bool hex = false;
-    
+
     if (_is_number(u16_str)) {
         if ((res = strtoul(u16_str, NULL, 10)) == ULONG_MAX) {
             puts("error: unable to parse value.\n"
@@ -394,70 +394,70 @@ static int _netif_set_u16(kernel_pid_t dev, netopt_t opt, char *u16_str)
                  "Must be a 16-bit unsigned integer (dec or hex)\n");
             return 1;
         }
-        
+
         hex = true;
     }
-    
+
     if (res > 0xffff) {
         puts("error: unable to parse value.\n"
              "Must be a 16-bit unsigned integer (dec or hex)\n");
         return 1;
     }
-    
+
     if (gnrc_netapi_set(dev, opt, 0, (uint16_t *)&res, sizeof(uint16_t)) < 0) {
         printf("error: unable to set ");
         _print_netopt(opt);
         puts("");
         return 1;
     }
-    
+
     printf("success: set ");
     _print_netopt(opt);
     printf(" on interface %" PRIkernel_pid " to ", dev);
-    
+
     if (hex) {
         printf("0x%04x\n", res);
     }
     else {
         printf("%u\n", res);
     }
-    
+
     return 0;
 }
 
 static int _netif_set_i16(kernel_pid_t dev, netopt_t opt, char *i16_str)
 {
     int16_t val = (int16_t)atoi(i16_str);
-    
+
     if (gnrc_netapi_set(dev, opt, 0, (int16_t *)&val, sizeof(int16_t)) < 0) {
         printf("error: unable to set ");
         _print_netopt(opt);
         puts("");
         return 1;
     }
-    
+
     printf("success: set ");
     _print_netopt(opt);
     printf(" on interface %" PRIkernel_pid " to %i\n", dev, val);
-    
+
     return 0;
 }
 
 static int _netif_set_u8(kernel_pid_t dev, netopt_t opt, char *u8_str)
 {
     uint8_t val = (uint8_t)atoi(u8_str);
-    
+
     if (gnrc_netapi_set(dev, opt, 0, (uint8_t *)&val, sizeof(uint8_t)) < 0) {
         printf("error: unable to set ");
         _print_netopt(opt);
         puts("");
         return 1;
     }
-    
+
     printf("success: set ");
     _print_netopt(opt);
     printf(" on interface %" PRIkernel_pid " to %i\n", dev, val);
-    
+
     return 0;
 }
 
@@ -476,25 +476,25 @@ static int _netif_set_addr(kernel_pid_t dev, netopt_t opt, char *addr_str)
 {
     uint8_t addr[MAX_ADDR_LEN];
     size_t addr_len = gnrc_netif_addr_from_str(addr, sizeof(addr), addr_str);
-    
+
     if (addr_len == 0) {
         puts("error: unable to parse address.\n"
              "Must be of format [0-9a-fA-F]{2}(:[0-9a-fA-F]{2})*\n"
              "(hex pairs delimited by colons)");
         return 1;
     }
-    
+
     if (gnrc_netapi_set(dev, opt, 0, addr, addr_len) < 0) {
         printf("error: unable to set ");
         _print_netopt(opt);
         puts("");
         return 1;
     }
-    
+
     printf("success: set ");
     _print_netopt(opt);
     printf(" on interface %" PRIkernel_pid " to %s\n", dev, addr_str);
-    
+
     return 0;
 }
 
@@ -530,7 +530,7 @@ static int _netif_set_state(kernel_pid_t dev, char *state_str)
     printf("success: set state of interface %" PRIkernel_pid " to ", dev);
     _print_netopt_state(state);
     puts("");
-    
+
     return 0;
 }
 
@@ -561,7 +561,7 @@ static int _netif_set(char *cmd_name, kernel_pid_t dev, char *key, char *value)
     else if (strcmp("csma_retries", key) == 0) {
         return _netif_set_u8(dev, NETOPT_CSMA_RETRIES, value);
     }
-    
+
     _set_usage(cmd_name);
     return 1;
 }
@@ -569,12 +569,12 @@ static int _netif_set(char *cmd_name, kernel_pid_t dev, char *key, char *value)
 static int _netif_flag(char *cmd, kernel_pid_t dev, char *flag)
 {
     netopt_enable_t set = NETOPT_ENABLE;
-    
+
     if (flag[0] == '-') {
         set = NETOPT_DISABLE;
         flag++;
     }
-    
+
     if (strcmp(flag, "promisc") == 0) {
         return _netif_set_flag(dev, NETOPT_PROMISCUOUSMODE, set);
     }
@@ -596,12 +596,12 @@ static int _netif_flag(char *cmd, kernel_pid_t dev, char *flag)
     else if (strcmp(flag, "iphc") == 0) {
 #if defined(MODULE_GNRC_SIXLOWPAN_NETIF) && defined(MODULE_GNRC_SIXLOWPAN_IPHC)
         gnrc_sixlowpan_netif_t *entry = gnrc_sixlowpan_netif_get(dev);
-        
+
         if (entry == NULL) {
             puts("error: unable to (un)set IPHC");
             return 1;
         }
-        
+
         if (set) {
             entry->iphc_enabled = true;
             printf("success: enable IPHC on interface %" PRIkernel_pid "\n", dev);
@@ -616,7 +616,7 @@ static int _netif_flag(char *cmd, kernel_pid_t dev, char *flag)
         return 1;
 #endif
     }
-    
+
     _flag_usage(cmd);
     return 1;
 }
@@ -625,20 +625,20 @@ static int _netif_flag(char *cmd, kernel_pid_t dev, char *flag)
 static uint8_t _get_prefix_len(char *addr)
 {
     int prefix_len = SC_NETIF_IPV6_DEFAULT_PREFIX_LEN;
-    
+
     while ((*addr != '/') && (*addr != '\0')) {
         addr++;
     }
-    
+
     if (*addr == '/') {
         *addr = '\0';
         prefix_len = atoi(addr + 1);
-        
+
         if ((prefix_len < 1) || (prefix_len > IPV6_ADDR_BIT_LEN)) {
             prefix_len = SC_NETIF_IPV6_DEFAULT_PREFIX_LEN;
         }
     }
-    
+
     return prefix_len;
 }
 #endif
@@ -654,7 +654,7 @@ static int _netif_add(char *cmd_name, kernel_pid_t dev, int argc, char **argv)
     char *addr_str = argv[0];
     ipv6_addr_t addr;
     uint8_t prefix_len;
-    
+
     if (argc > 1) {
         if (strcmp(argv[0], "anycast") == 0) {
             type = _ANYCAST;
@@ -673,29 +673,29 @@ static int _netif_add(char *cmd_name, kernel_pid_t dev, int argc, char **argv)
             return 1;
         }
     }
-    
+
     prefix_len = _get_prefix_len(addr_str);
-    
+
     if (ipv6_addr_from_str(&addr, addr_str) == NULL) {
         puts("error: unable to parse IPv6 address.");
         return 1;
     }
-    
+
     if ((argc > 1) && (ipv6_addr_is_multicast(&addr)) && (type != _MULTICAST)) {
         puts("error: address was not a multicast address.");
         return 1;
     }
-    
+
     if (gnrc_ipv6_netif_add_addr(dev, &addr, prefix_len, (type == _ANYCAST) ?
                                  GNRC_IPV6_NETIF_ADDR_FLAGS_NON_UNICAST :
                                  GNRC_IPV6_NETIF_ADDR_FLAGS_UNICAST) == NULL) {
         printf("error: unable to add IPv6 address\n");
         return 1;
     }
-    
+
     printf("success: added %s/%d to interface %" PRIkernel_pid "\n", addr_str,
            prefix_len, dev);
-    
+
     return 0;
 #else
     (void)cmd_name;
@@ -703,7 +703,7 @@ static int _netif_add(char *cmd_name, kernel_pid_t dev, int argc, char **argv)
     (void)argc;
     (void)argv;
     puts("error: unable to add IPv6 address.");
-    
+
     return 1;
 #endif
 }
@@ -712,17 +712,17 @@ static int _netif_del(kernel_pid_t dev, char *addr_str)
 {
 #ifdef MODULE_GNRC_IPV6_NETIF
     ipv6_addr_t addr;
-    
+
     if (ipv6_addr_from_str(&addr, addr_str) == NULL) {
         puts("error: unable to parse IPv6 address.");
         return 1;
     }
-    
+
     gnrc_ipv6_netif_remove_addr(dev, &addr);
-    
+
     printf("success: removed %s to interface %" PRIkernel_pid "\n", addr_str,
            dev);
-    
+
     return 0;
 #else
     (void)dev;
@@ -768,23 +768,23 @@ int _netif_send(int argc, char **argv)
     gnrc_pktsnip_t *pkt;
     gnrc_netif_hdr_t *nethdr;
     uint8_t flags = 0x00;
-    
+
     if (argc < 4) {
         printf("usage: %s <if> [<addr>|bcast] <data>\n", argv[0]);
         return 1;
     }
-    
+
     /* parse interface */
     dev = (kernel_pid_t)atoi(argv[1]);
-    
+
     if (!_is_iface(dev)) {
         puts("error: invalid interface given");
         return 1;
     }
-    
+
     /* parse address */
     addr_len = gnrc_netif_addr_from_str(addr, sizeof(addr), argv[2]);
-    
+
     if (addr_len == 0) {
         if (strcmp(argv[2], "bcast") == 0) {
             flags |= GNRC_NETIF_HDR_FLAGS_BROADCAST;
@@ -794,7 +794,7 @@ int _netif_send(int argc, char **argv)
             return 1;
         }
     }
-    
+
     /* put packet together */
     pkt = gnrc_pktbuf_add(NULL, argv[3], strlen(argv[3]), GNRC_NETTYPE_UNDEF);
     pkt = gnrc_pktbuf_add(pkt, NULL, sizeof(gnrc_netif_hdr_t) + addr_len,
@@ -809,7 +809,7 @@ int _netif_send(int argc, char **argv)
         gnrc_pktbuf_release(pkt);
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -818,16 +818,16 @@ int _netif_config(int argc, char **argv)
     if (argc < 2) {
         kernel_pid_t ifs[GNRC_NETIF_NUMOF];
         size_t numof = gnrc_netif_get(ifs);
-        
+
         for (size_t i = 0; i < numof && i < GNRC_NETIF_NUMOF; i++) {
             _netif_list(ifs[i]);
         }
-        
+
         return 0;
     }
     else if (_is_number(argv[1])) {
         kernel_pid_t dev = (kernel_pid_t)atoi(argv[1]);
-        
+
         if (_is_iface(dev)) {
             if (argc < 3) {
                 _netif_list(dev);
@@ -838,7 +838,7 @@ int _netif_config(int argc, char **argv)
                     _set_usage(argv[0]);
                     return 1;
                 }
-                
+
                 return _netif_set(argv[0], dev, argv[3], argv[4]);
             }
             else if (strcmp(argv[2], "add") == 0) {
@@ -846,7 +846,7 @@ int _netif_config(int argc, char **argv)
                     _add_usage(argv[0]);
                     return 1;
                 }
-                
+
                 return _netif_add(argv[0], (kernel_pid_t)dev, argc - 3, argv + 3);
             }
             else if (strcmp(argv[2], "del") == 0) {
@@ -854,7 +854,7 @@ int _netif_config(int argc, char **argv)
                     _del_usage(argv[0]);
                     return 1;
                 }
-                
+
                 return _netif_del((kernel_pid_t)dev, argv[3]);
             }
             else if (strcmp(argv[2], "mtu") == 0) {
@@ -862,7 +862,7 @@ int _netif_config(int argc, char **argv)
                     _mtu_usage(argv[0]);
                     return 1;
                 }
-                
+
                 return _netif_mtu((kernel_pid_t)dev, argv[3]);
             }
             else {
@@ -874,7 +874,7 @@ int _netif_config(int argc, char **argv)
             return 1;
         }
     }
-    
+
     printf("usage: %s [<if_id>]\n", argv[0]);
     _set_usage(argv[0]);
     _mtu_usage(argv[0]);
@@ -897,20 +897,20 @@ int _netif_send_echo(int argc, char **argv)
     gnrc_pktsnip_t *pkt;
     gnrc_netif_hdr_t *nethdr;
     uint8_t flags = 0x00;
-    
+
     if (argc < 4) {
         printf("usage: %s <if> [<addr>|bcast] <data>\n", argv[0]);
         return 1;
     }
-    
+
     /* parse interface */
     dev = (kernel_pid_t)atoi(argv[1]);
-    
+
     if (!_is_iface(dev)) {
         puts("error: invalid interface given");
         return 1;
     }
-    
+
     /* parse address */
     dest_addr_len = gnrc_netif_addr_from_str(dest_addr, sizeof(dest_addr), argv[2]);
     printf("addr_len1: %u\n", dest_addr_len);
@@ -924,12 +924,12 @@ int _netif_send_echo(int argc, char **argv)
             return 1;
         }
     }
-    
+
     /* haoyang: get the source address*/
     int res;
     uint8_t hwaddr[MAX_ADDR_LEN];
     char * result = NULL;
-    
+
     res = gnrc_netapi_get(dev, NETOPT_ADDRESS, 0, hwaddr, sizeof(hwaddr));
     if (res>=0) {
         char hwaddr_str[res * 3];
@@ -940,8 +940,8 @@ int _netif_send_echo(int argc, char **argv)
 
     src_addr_len = gnrc_netif_addr_from_str(src_addr, sizeof(src_addr), result);
     printf("addr_len2: %u\n", src_addr_len);
-    
-    
+
+
     /* put packet together */
     pkt = gnrc_pktbuf_add(NULL, argv[3], strlen(argv[3]), GNRC_NETTYPE_UNDEF);
     pkt = gnrc_pktbuf_add(pkt, NULL, sizeof(gnrc_netif_hdr_t) + dest_addr_len + src_addr_len,
@@ -950,19 +950,19 @@ int _netif_send_echo(int argc, char **argv)
     nethdr = (gnrc_netif_hdr_t *)pkt->data;
     /* haoyang: Initialize the header and set the destination address*/
     gnrc_netif_hdr_init(nethdr, 0, dest_addr_len);
-    
+
     gnrc_netif_hdr_set_dst_addr(nethdr, dest_addr, dest_addr_len);
     gnrc_netif_hdr_set_src_addr(nethdr, src_addr, src_addr_len);
-    
+
     nethdr->flags = flags;
-    
+
     /* and send it */
     if (gnrc_netapi_send(dev, pkt) < 1) {
         puts("error: unable to send\n");
         gnrc_pktbuf_release(pkt);
         return 1;
     }
-    
+
     return 0;
 }
 
@@ -1004,8 +1004,6 @@ int _netif_send_nbd(int argc, char **argv){
     return result_flag;
 }
 
-
-
 //haoyang: for static routing
 /* shell commands */
 int _netif_static_routing(int argc, char **argv){
@@ -1023,7 +1021,7 @@ int _netif_static_routing(int argc, char **argv){
             if(result){
                 printf("%"PRIu16" \n", dst_guid);
                 mf_routing_table_append_entry(dst_guid, next_hop_guid);
-            }  
+            }
             printf("append run success\n");
         }
         else if (strcmp(argv[1], "print") == 0) {

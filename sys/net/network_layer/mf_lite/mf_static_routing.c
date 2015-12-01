@@ -7,13 +7,14 @@
 #include <stdlib.h>
 #include "mutex.h"
 //haoyang: header defined
-#include "net/mf-lite/mf_static_routing.h"
-#include "net/mf-lite/mf_routing_table.h"
+#include "net/mf_lite/mf_static_routing.h"
+#include "net/mf_lite/mf_routing_table.h"
 
 mf_routing_table_entry_t *head;
 mf_routing_table_entry_t *tail;
 
 void linkList_init(void){
+//	uint16_t macid;
 	head = (mf_routing_table_entry_t *) malloc(sizeof(mf_routing_table_entry_t));
 	tail = (mf_routing_table_entry_t *) malloc(sizeof(mf_routing_table_entry_t));
 	head->next_entry = tail;
@@ -23,7 +24,7 @@ void linkList_init(void){
 mf_routing_table_entry_t *mf_routing_table_append_entry(uint16_t guid, uint16_t nextHopGuid){
 	mf_routing_table_entry_t *entry;
 	mf_routing_table_entry_t *cur;
-	
+
 	cur = head;
 	//loop to the end of the link list
 	while(cur->next_entry != tail){

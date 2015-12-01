@@ -7,16 +7,18 @@
 #ifndef _LINKED_LIST_H
 #define _LINKED_LIST_H
 
-struct list_head{
+typedef struct list_head{
     struct list_head *next, *prev;
-};
+}list_head_t;
+
+typedef list_head_t* list_head_p;
 
 #define LIST_HEAD_INIT(name) { \
 &(name), &(name) \
 }
 
 #define LIST_HEAD(name){ \
-struct list_head name = {&name, &name}; \
+list_head_t name = {&name, &name}; \
 }
 
 #define INIT_LIST_HEAD(ptr) do { \
@@ -24,7 +26,7 @@ struct list_head name = {&name, &name}; \
 (ptr)->prev = ptr; \
 } while(0)
 
-static __inline__ void __list_add(struct list_head *new, struct list_head *prev, struct list_head *next){
+static __inline__ void __list_add(list_head_t *new, list_head_t *prev, list_head_t *next){
     next->prev = new;
     new->next = next;
     new->prev = prev;
@@ -32,26 +34,27 @@ static __inline__ void __list_add(struct list_head *new, struct list_head *prev,
 }
 
 //insert a new entry after the specified head
-static __inline__ void list_add(struct list_head *new, struct list_head *head){
+static __inline__ void list_add(list_head_t *new, list_head_t *head){
     __list_add(new, head, head->next);
 }
 
 //insert a new entry at the tail
-static __inline__ void list_add_tail(struct list_head *new, struct list_head *head){
+static __inline__ void list_add_tail(list_head_t *new, list_head_t *head){
     __list_add(new, head->prev, head);
 }
 
-static __inline__ void __list_del(struct list_head *prev, struct list_head *next){
+static __inline__ void __list_del(list_head_t *prev, list_head_t *next){
     next->prev = prev;
     prev->next = next;
 }
 
-static __inline__ void list_del(struct list_head *head){
+static __inline__ void list_del(list_head_t *head){
     __list_del(head->prev, head->next);
 }
 
-static __inline__ int list_empty(struct list_head *head){
-    return head->next = head;
+//list_empty: if empty return TRUE == 1, OTHERWISE return FALSE == 0
+static __inline__ int list_empty(list_head_t *head){
+    return head->next == head;
 }
 
 #define list_entry(ptr, type, member) \
