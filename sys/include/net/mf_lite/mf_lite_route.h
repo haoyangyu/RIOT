@@ -23,15 +23,16 @@ typedef mf_lite_routing_table_entry_t* mf_lite_routing_table_entry_p;
 extern list_head_p mf_lite_routing_table_p;
 
 //Insert entry into the list
-//TODO: also modify the name to match the naming scheme
-//void mf_lite_route_add(mf_lite_short_guid_t dst_guid, mf_lite_short_guid_t nexthop_guid);
+//also modify the name to match the naming scheme
+void mf_lite_route_add_tail(mf_lite_short_guid_t dst_guid, mf_lite_short_guid_t nexthop_guid);
 
 //Find the mac address specified by guid
-//TODO: also modify the name to match the naming scheme
+//also modify the name to match the naming scheme
 //nexthop_guid: pointer to the space for next hop guid storage
 //return: 1 if found, 0 otherwise
-//int mf_lite_route_find(mf_lite_short_guid_t dst_guid, mf_lite_short_guid_t *nexthop_guid);
+int mf_lite_route_find(mf_lite_short_guid_t dst_guid, mf_lite_short_guid_t *nexthop_guid);
 
-
+//print the neighbor table out
+void mf_lite_route_printf(list_head_p head);
 
 #endif

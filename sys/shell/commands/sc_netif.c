@@ -39,6 +39,10 @@
 #include "net/mf_lite/neighbordiscovery/nbd_adv_hdr.h"
 #include "net/mf_lite/mf_static_routing.h"
 #include "net/mf_lite/strutil.h"
+
+//haoyang: final use
+#include "net/mf_lite/mf_lite_route.h"
+#include "net/mf_lite/mf_lite_neighbor.h"
 /**
  * @brief   The maximal expected link layer address length in byte
  */
@@ -1004,34 +1008,37 @@ int _netif_send_nbd(int argc, char **argv){
     return result_flag;
 }
 
+extern list_head_t neighbor_list_1;
+
 //haoyang: for static routing
 /* shell commands */
 int _netif_static_routing(int argc, char **argv){
-    mf_routing_table_entry_t *ptr = NULL;
-    printf("start\n");
-    linkList_init();
-    if (argc > 1) {
-        printf("in if statement, %s\n", argv[1]);
-        if (strcmp(argv[1], "append") == 0) {
-            printf("append start\n");
-            //initial for the utility value space
-            uint16_t dst_guid, next_hop_guid;
-            bool result = false;
-            result = (str_to_uint16(argv[2], &dst_guid) && str_to_uint16(argv[3], &next_hop_guid));
-            if(result){
-                printf("%"PRIu16" \n", dst_guid);
-                mf_routing_table_append_entry(dst_guid, next_hop_guid);
-            }
-            printf("append run success\n");
-        }
-        else if (strcmp(argv[1], "print") == 0) {
-            printf("run\n");
-            print_mf_routing_table(ptr);
-            printf("print success\n");
-        }
-        else {
-            return 1;
-        }
+  kernel_pid_t ifs[GNRC_NETIF_NUMOF];
+  //ifs get the kernel pid of ALL interfaces
+  //number should be 1, ifs[0] contains the kpid of 15.4 network interface
+  size_t number = gnrc_netif_get(ifs);
+  if (number == 1) {
+    uint8_t hwaddr[MAX_ADDR_LEN];
+    int res = gnrc_netapi_get(ifs[0], NETOPT_ADDRESS, 0, hwaddr, sizeof(hwaddr));
+    //res = value returned by the GNRC_NETAPI_MSG_TYPE_ACK message
+    //GNRC_NETAPI_MSG_TYPE_ACK message: get and set option messages
+    //res == 2
+    if (res >= 0) {
+      printf("res = %d\n", res);
+      printf("hwaddr = %p\n", hwaddr);
+      uint16_t macaddr = hwaddr[0] << 8 | hwaddr[1];
+      printf("%x\n", macaddr);
+      char hwaddr_str[res*3];
+      printf("hwaddrstr = %s\n", gnrc_netif_addr_to_str(hwaddr_str, sizeof(hwaddr_str), hwaddr, res));
     }
-    return 0;
+  }
+
+  static int tmp = 0;
+
+  printf("---%p, %d\n", &neighbor_list_1, tmp++);
+  printf("!!!%p, %d\n", mf_lite_neighbor_table_p, tmp++);
+  mf_lite_neighbor_printf(mf_lite_neighbor_table_p);
+
+  mf_lite_route_printf(mf_lite_routing_table_p);
+  return 0;
 }

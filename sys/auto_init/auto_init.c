@@ -90,6 +90,7 @@
 
 void auto_init(void)
 {
+
 #ifdef MODULE_CONFIG
     DEBUG("Auto init loading config\n");
     config_load();
@@ -143,12 +144,6 @@ void auto_init(void)
     DEBUG("Auto init UDP module.\n");
     gnrc_udp_init();
 #endif
-
-//haoyang: module
-#ifdef MODULE_MF_LITE
-    mf_lite_static_route_init();
-#endif
-
     /* initialize network devices */
 #ifdef MODULE_AUTO_INIT_GNRC_NETIF
 
@@ -191,5 +186,9 @@ void auto_init(void)
 
 #ifdef MODULE_GNRC_IPV6_NETIF
     gnrc_ipv6_netif_init_by_dev();
+#endif
+//haoyang: module
+#ifdef MODULE_MF_LITE
+    mf_lite_static_route_init();
 #endif
 }

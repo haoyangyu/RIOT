@@ -48,6 +48,7 @@ volatile int lpm_prevent_sleep = 0;
 extern int main(void);
 static void *main_trampoline(void *arg)
 {
+
     (void) arg;
 
 #ifdef MODULE_AUTO_INIT
