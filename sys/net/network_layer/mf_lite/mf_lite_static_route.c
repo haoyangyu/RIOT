@@ -27,7 +27,7 @@
 // PID of the mf_lite_static_route id
 static kernel_pid_t _pid = KERNEL_PID_UNDEF;
 // stack for the pktdump thread
-static char _stack[MF_STATIC_ROUTE_STACKSIZE];
+//static char _stack[MF_STATIC_ROUTE_STACKSIZE];
 
 #define MAX_ADDR_LEN            (8U)
 
@@ -49,7 +49,7 @@ static short_macaddr_t _get_default_macaddr(void){
   //ifs get the kernel pid of ALL interfaces
   //number should be 1, ifs[0] contains the kpid of 15.4 network interface
   size_t number = gnrc_netif_get(ifs);
-  if (number == 1) {
+  if (number >= 1) {
     uint8_t hwaddr[MAX_ADDR_LEN];
     int res = gnrc_netapi_get(ifs[0], NETOPT_ADDRESS, 0, hwaddr, sizeof(hwaddr));
     //res = value returned by the GNRC_NETAPI_MSG_TYPE_ACK message
@@ -83,25 +83,6 @@ static void _mf_lite_static_routing_neigbor_table_init(void){
 
   mf_lite_neighbor_table_p = &neighbor_list_4;
   mf_lite_neighbor_add_tail(0x0003, 0x9cda);
-
-  //if switch based on the mac address
-  short_macaddr_t macaddr = _get_default_macaddr();
-  switch(macaddr){
-    case 0x3ca2:
-      mf_lite_neighbor_table_p = &neighbor_list_1;
-      break;
-    case 0x190e:
-      mf_lite_neighbor_table_p = &neighbor_list_2;
-      break;
-    case 0x9cda:
-      mf_lite_neighbor_table_p = &neighbor_list_3;
-      break;
-    case 0x2fb6:
-      mf_lite_neighbor_table_p = &neighbor_list_4;
-      break;
-    default:
-      break;
-  }
 }
 
 static void _mf_lite_static_routing_routing_table_init(void){
@@ -130,43 +111,53 @@ static void _mf_lite_static_routing_routing_table_init(void){
   mf_lite_route_add_tail(1,3);
   mf_lite_route_add_tail(2,3);
   mf_lite_route_add_tail(3,3);
+}
 
+static void _mf_lite_static_routing_table_point (void) {
   //Based on mac for the board to choose which list to follow
   short_macaddr_t macaddr = _get_default_macaddr();
   switch(macaddr){
     case 0x3ca2:
+      mf_lite_neighbor_table_p = &neighbor_list_1;
       mf_lite_routing_table_p = &routing_list_1;
       break;
     case 0x190e:
+      mf_lite_neighbor_table_p = &neighbor_list_2;
       mf_lite_routing_table_p = &routing_list_2;
       break;
     case 0x9cda:
       mf_lite_routing_table_p = &routing_list_3;
+      mf_lite_neighbor_table_p = &neighbor_list_3;
       break;
     case 0x2fb6:
       mf_lite_routing_table_p = &routing_list_4;
+      mf_lite_neighbor_table_p = &neighbor_list_4;
       break;
     default:
+      printf("%s\n", "Error! Undefined MAC Address!");
       break;
   }
 }
 
-static void * _mf_lite_static_route_table_form(void *arg){
-  //forming the neighbor table
-  _mf_lite_static_routing_neigbor_table_init();
-  //forming the routing table
-  _mf_lite_static_routing_routing_table_init();
-  return NULL;
-}
+//static void * _mf_lite_static_route_table_form(void *arg){
+//  //forming the neighbor table
+//  _mf_lite_static_routing_neigbor_table_init();
+//  //forming the routing table
+//  _mf_lite_static_routing_routing_table_init();
+//
+//  return NULL;
+//}
 
-kernel_pid_t mf_lite_static_route_init(void){
+//kernel_pid_t mf_lite_static_route_init(void){
+void mf_lite_static_route_init(void){
   _mf_lite_static_routing_neigbor_table_init();
   _mf_lite_static_routing_routing_table_init();
- if (_pid != KERNEL_PID_UNDEF) {
-    _pid = thread_create(_stack, sizeof(_stack), MF_STATIC_ROUTE_PRIO,
-                          CREATE_STACKTEST, _mf_lite_static_route_table_form, NULL, "mf_static_route");
-  }
-  return _pid;
+  _mf_lite_static_routing_table_point();
+// if (_pid != KERNEL_PID_UNDEF) {
+//    _pid = thread_create(_stack, sizeof(_stack), MF_STATIC_ROUTE_PRIO,
+//                          CREATE_STACKTEST, _mf_lite_static_route_table_form, NULL, "mf_static_route");
+//  }
+//  return _pid;
 }
 
 kernel_pid_t mf_lite_static_route_getpid(void){
